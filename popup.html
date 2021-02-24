@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600" rel="stylesheet" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container logo"\>
+      NETSKIPS
+    </div>
+    <form id="popup-form" class="container"\>
+      <div class="input-info"\>Time to skip: [hh:mm:ss]</div>
+      <input id="whenToSkip"/>
+
+      <div class="input-info"\>How many seconds to skip</div>
+      <input id="secondsToSkip" type="number" value="" min="0"/>
+
+      <button id="setTimes" type="submit"\>Set</button>
+    </form>
+
+    <div class="container footer"\>
+      &copy; netskips, 2021
+    </div>
+
+    <script src="popup.js"\></script>
+  </body>
+</html>
