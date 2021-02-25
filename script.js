@@ -16,8 +16,12 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   var secondsToSkip = parseInt(message.secondsToSkip); //number in seconds
 
   var [hour, minutes, seconds] = whenToSkip.split(':');
+
+  // the second at which we have to start seeking forward
   const total = (parseInt(hour)*3600) + (parseInt(minutes)*60) + parseInt(seconds); //in seconds
-  const skips = secondsToSkip/10; //number of seeks to click, 10 since netflix skips 10 seconds on seek button click
+
+  //number of seeks to click, 10 since netflix skips 10 seconds on seek button click
+  const skips = secondsToSkip/10;
 
   console.log("When to skip: " + whenToSkip + " or in seconds: " + total);
   console.log("How many seconds to skip: " + secondsToSkip + " or in skips(button clicks): " + skips);
