@@ -1,12 +1,26 @@
 chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
 
+  /**
+    * Netflix DOM Structure by class:
+    * - subtitles: .player-timedText
+    * - seekbar: .scrubber-head
+    * - current progress: .current-progress
+    * - time remaining: .time-remaining__time
+    * - seek button: .touchable.PlayerControls--control-element.nfp-button-control.default-control-button.button-nfplayerFastForward
+    * - the video: .NFPlayer.nf-player-container
+    */
+
   console.log("Started button clicked, began watching video.");
 
-  const whenToSkip = message.whenToSkip;
-  const secondsToSkip = message.secondsToSkip;
+  var whenToSkip = message.whenToSkip; //hh:mm:ss
+  var secondsToSkip = parseInt(message.secondsToSkip); //number in seconds
 
-  console.log(whenToSkip);
-  console.log(secondsToSkip);
+  var [hour, minutes, seconds] = whenToSkip.split(':');
+  const total = (parseInt(hour)*3600) + (parseInt(minutes)*60) + parseInt(seconds); //in seconds
+  const skips = secondsToSkip/10; //number of seeks to click, 10 since netflix skips 10 seconds on seek button click
+
+  console.log("When to skip: " + whenToSkip + " or in seconds: " + total);
+  console.log("How many seconds to skip: " + secondsToSkip + " or in skips(button clicks): " + skips);
 
   // this is the seek 10 seconds button on netflix
   const seekButton = document.querySelector(".touchable.PlayerControls--control-element.nfp-button-control.default-control-button.button-nfplayerFastForward");
@@ -15,67 +29,59 @@ chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   var video = playerDiv.getElementsByTagName("video")[0]; //loop over video.currentTime to get current seconds
 
   console.log("Video being watched: " + video);
-
-  const timeToReach = 100; //in seconds
-
-  var myTimer = setInterval(() => {
+  
+  var movieTimer = setInterval(() => {
     var currentTime = video.currentTime; //in seconds
     console.log("Timer working, video currentTime: " + currentTime);
 
-    if (currentTime >= timeToReach) {
-      seekButton.click(); //skip 10 seconds
-      seekButton.click(); //skip 10 seconds
-      seekButton.click(); //skip 10 seconds
-      seekButton.click(); //skip 10 seconds
-      clearInterval(myTimer);
+    if (currentTime >= total) {
+      clearInterval(movieTimer);
+      console.log("Gonna seek now")
+      seekForward(skips, seekButton);
     }
   }, 1000);
 
-    // function for manipulating styles
-    // changeSubtitlesStyle(message.vPos, message.fSize, message.fColor);
+  ////////////////////////////////////////////////////////////////
+  /**
+   * Another approach would be, something like commented below, to use: `video.currentTime=<time-desired>`, but for some reason Netflix always stops with an error 
+   * if the time was modified using this method.
+   */
+  // video.pause();
+
+  // setTimeout(()=> {
+  //   video.currentTime = 400;
+  // }, 1000);
+
+  // setTimeout(()=> {
+  //   video.play();
+  // }, 5000);
+
+  // var timer = setInterval(function() {
+  //   if (video.paused && video.readyState ==4 || !video.paused) {
+  //       video.play();
+  //       clearInterval(timer);
+  //   }       
+  // }, 100);
+  ///////////////////////////////////////////////////////////////////////
+
 });
 
 
-// changeSubtitlesStyle = (vPos, fSize, fColor) => {
-//     console.log("%cnetflix-subtitles-styler : observer is working... ", "color: red;");
-  
-//     // add a mutation observer on this div? get the current value from "aria-valuenow"
-//     const scrubberHead = document.querySelector(".scrubber-head"); //<div aria-label="Seek time scrubber" aria-valuemax="1050" aria-valuemin="0" aria-valuenow="603" aria-valuetext="10:03 of 17:30" class="scrubber-head" tabindex="0" style="left: 57.47%;"></div>
-
-
-//     const observer = new MutationObserver(callback);
-//     callback = () => {
-//       /**
-//        * DOM Structure by class:
-//        * - subtitles: .player-timedText
-//        * - seekbar: .scrubber-head
-//        * - current progress: .current-progress
-//        * - time remaining: .time-remaining__time
-//        */
-
-//       // this is the seek 10 seconds button on netflix
-//       const seekButton = document.querySelector(".touchable.PlayerControls--control-element.nfp-button-control.default-control-button.button-nfplayerFastForward");
-
-//       // var currentTime = parseInt(scrubberHead.getAttribute("aria-valuenow"));
-
-
-//       var playerDiv = document.querySelector(".NFPlayer.nf-player-container");
-//       var video = playerDiv.getElementsByTagName("video")[0]; //loop over video.currentTime to get current seconds
-
-//       while (true) {
-//         var currentTime = video.currentTime; //in seconds
-//         const timeToReach = 500; //in seconds
-
-//         if (currentTime >= timeToReach) {
-//           seekButton.click(); //skip 10 seconds
-//           observer.disconnect();
-//         }
-//       }
-//     };
-  
-//     observer.observe(scrubberHead, {
-//       subtree: true,
-//       attributes: true,
-//       childList: true
-//     });
-// };
+/**
+ * This function performs a seek button click (skip netflix's 10 seconds on each click). 
+ * There is a 500ms delay between each click, wasn't registering more than 2 clicks without the timer.
+ * @param {number of clicks on seek button required} skips 
+ * @param {The seek button extracted from the DOM} seekButton 
+ */
+function seekForward(skips, seekButton) {
+  var i = 1;
+  var seekingTimer = setInterval(()=> {
+    if (i <= skips) {
+      console.log("seek number: " + i);
+      seekButton.click();
+      i++;
+    } else {
+      clearInterval(seekingTimer);
+    }
+  }, 500);
+}
